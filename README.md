@@ -1,11 +1,16 @@
-# Pixel 8 Pro: Wi-Fi and Bluetooth both dead — diagnosis log and a workaround that worked
+# Pixel 8 Pro: Wi-Fi and Bluetooth both dead — diagnosis log and a workaround that stopped working
 
-**Status: one phone, one afternoon of testing. This is a field report, not a verified fix.**
+**Status: one phone, two sessions eleven days apart. This is a field report, not a verified fix.**
+
+**Update (day 12): the workaround no longer works.** The radios were dead again, and neither the bootloader
+reboot (twice) nor a full power-off brought them back, at a cool temperature. I now treat this unit as a hardware
+fault. See [section 5a](#5a-day-12-the-workaround-stopped-working) and, for a way to get the phone online anyway,
+[section 5b](#5b-internet-without-wi-fi-usb-reverse-tethering).
 
 A Pixel 8 Pro (Tensor G3, Android 17) came up after a factory reset with **no Wi-Fi and no Bluetooth at all**.
-Reinstalling Android did not help. Rebooting **through the bootloader** brought both radios back, three times out
-of three, while the two ordinary boots I observed (first boot after the factory reset, first boot after the update)
-did not. I don't know why. The evidence fits an intermittent
+Reinstalling Android did not help. On day 1, rebooting **through the bootloader** brought both radios back, three
+times out of three, while the two ordinary boots I observed (first boot after the factory reset, first boot after
+the update) did not. On day 12 it did not. The evidence fits an intermittent, worsening
 fault in the combined Wi-Fi/Bluetooth chip; I could not prove that, and it is not proven here.
 
 If your Pixel 8 Pro shows the signatures below, this might save you some hours. If it works for you, or doesn't,
@@ -90,17 +95,63 @@ Because the bootloader reboot and the Bluetooth change happened together, I can'
 - The failure signature changes once the driver has loaded: `WifiHAL : Could not create handle` instead of
   `Timed out waiting on Driver ready`.
 
+## 5a. Day 12: the workaround stopped working
+
+Eleven days after day 1 (Wi-Fi had been working in between; I don't know exactly when it failed), the phone was
+connected again with the radios dead. Same build (`CP3A.260905.009`), nothing changed on the phone.
+
+Read-only check (section 8) on the running phone:
+
+- No `wlan` interface, `bcmdhd4398` not loaded, Wi-Fi disabled.
+- PCIe: `0000:00:00.0`, `0000:01:00.0` (modem, `s51xx`), `0001:00:00.0` — **nothing at `0001:01:00.0`**. Same
+  signature as day 1: the chip is not on the bus.
+- `Timed out waiting on Driver ready` 5 times, the Wi-Fi self-recovery lockout 4 times, `The Bluetooth HAL died`
+  7 times (`Bluetooth crashed 7 times`) in that boot.
+- Battery temperature 26.2 °C. That's not the SoC temperature, but the phone was not warm.
+
+| Attempt (each followed by Bluetooth off + Wi-Fi on, re-checked after boot settled) | Result |
+|---|---|
+| Bootloader reboot (section 4) | Chip absent, Wi-Fi disabled |
+| Bootloader reboot, second time | Chip absent, Wi-Fi disabled |
+| Full power-off, left off at least 30 s, powered on by hand | Chip absent, Wi-Fi disabled |
+
+I stopped there on purpose so I wouldn't run into the lockout. The bootloader path is not a reliable fix, a cold
+power cycle didn't help either, and a warm phone isn't needed for the fault to show up.
+
+## 5b. Internet without Wi-Fi: USB reverse tethering
+
+With no working radio (and no usable cellular data), the phone can still get online through a computer's
+connection over USB using [Gnirehtet](https://github.com/Genymobile/gnirehtet) (open source, Genymobile). It
+needs USB debugging and no root. It installs a small client app on the phone that shows up as a VPN (key icon).
+
+```
+gnirehtet run          # from the gnirehtet folder; set ADB=<path to adb> if adb isn't on PATH
+```
+
+On this phone Android marked the connection `VALIDATED` within seconds, and Google services and Play synced.
+Notes:
+- **Ping is not a valid test.** Gnirehtet relays TCP and UDP only, so ICMP always shows 100% loss even while
+  everything works. Check `dumpsys connectivity` for `VALIDATED`, or just open a web page.
+- The phone must stay plugged in and the relay must keep running on the computer.
+- To undo it: stop the relay, `adb reverse --remove-all`, `adb uninstall com.genymobile.gnirehtet`.
+
+It's a stopgap for backing up and getting through setup until the repair, not a fix.
+
 ## 6. What I think is going on (unproven)
 
 1. **Intermittent hardware fault** in the combined chip or its board connection. This matches the public reports
    below (heat-sensitive, temporarily fixed by cooling). Consistent with "chip absent on PCIe until it happens to
    come up".
 2. **The bootloader path resets the chip more completely** than a warm reboot (rails, reset line). Consistent with
-   three out of three, but that is a tiny sample.
+   three out of three on day 1, but **contradicted on day 12** (0 of 2, and a full power-off also failed). At most
+   it helped while the fault was milder.
 3. **Bluetooth load contributing to Wi-Fi firmware crashes** (shared chip). One observation; weak.
 
-Experiments that would separate these, which I did not run: a controlled cold test; a full power-off for 30 s
-versus the bootloader path; Bluetooth on versus off with the same boot path; repeat counts on more phones.
+Day 12 makes explanation 1 the most likely one, and suggests the fault is getting worse over time.
+
+Experiments that would separate these, which I did not run: a controlled cold test; Bluetooth on versus off with
+the same boot path; repeat counts on more phones. (Full power-off versus the bootloader path: tried on day 12,
+and both failed.)
 
 ## 7. Related reports
 
@@ -121,9 +172,10 @@ I only read the first article in full; the others are from search results.
 .\tools\pixel-radio-check.ps1 -Adb C:\path\to\adb.exe
 ```
 
-Needs USB debugging on and the computer authorised. I ran the script against the phone in this report in the
-**working** state (radios up), and with no phone attached. I did not run the script itself in the dead state: its
-checks are the same commands I ran by hand then, but that is not the same as having tested it there.
+Needs USB debugging on and the computer authorised. If more than one Android device is attached, set
+`ANDROID_SERIAL` to the phone's serial first. I've run the script against the phone in this report in both the
+**working** state (day 1) and the **dead** state (day 12, output summarised in section 5a), and with no phone
+attached.
 
 ## 9. If it is hardware
 
@@ -132,8 +184,9 @@ board-level repair shop. Reinstalling Android will not fix a chip that is not an
 
 ## 10. Limits
 
-- One phone. One session. No root, so no kernel log from boot; the driver's own load messages were never visible.
-- I never confirmed a controlled cold test, so I make no claim about temperature.
+- One phone. Two sessions. No root, so no kernel log from boot; the driver's own load messages were never visible.
+- I never ran a controlled cold test. All I can say about temperature is that the fault showed up with the phone
+  at room temperature (day 12).
 - The commands in section 4 are exactly what I ran, but I have not packaged them as a script.
 
 ## 11. Privacy and provenance
