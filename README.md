@@ -73,11 +73,17 @@ adb reboot bootloader        # reboot into the bootloader...
 fastboot reboot              # ...and straight back to Android. Nothing is flashed or changed.
 ```
 
-After that boot, all of these were true, every time (three times):
+After that boot, all of these were true, every time (three times; but see the caveat below this list):
 
 - `wlan0` and `wlan1` exist; `bcmdhd4398` is in `lsmod`; PCIe shows the chip at `0001:01:00.0`.
 - Bluetooth reports a real address and stays on.
 - The radio scans and sees 16 to 24 networks.
+
+Caveat on the first of the three: I didn't check Wi-Fi right after that boot. The next check came about 2½ hours
+later (I don't know whether the phone was off or on in between), and the chip was already present then, before the
+second bootloader reboot. So the first recovery can't be cleanly credited to the bootloader path. It may have been
+the time that passed. The second and third bootloader reboots each brought Wi-Fi back from a state where it would
+not start.
 
 On the third attempt I also turned Bluetooth **off** immediately after boot and only then enabled Wi-Fi
 (`cmd bluetooth_manager disable`, `settings put global ble_scan_always_enabled 0`, `cmd wifi set-wifi-enabled enabled`).
@@ -107,15 +113,16 @@ Read-only check (section 8) on the running phone:
   signature as day 1: the chip is not on the bus.
 - `Timed out waiting on Driver ready` 5 times, the Wi-Fi self-recovery lockout 4 times, `The Bluetooth HAL died`
   7 times (`Bluetooth crashed 7 times`) in that boot.
-- Battery temperature 26.2 °C. That's not the SoC temperature, but the phone was not warm.
+- Battery temperature 26.2–29.2 °C across the day. That's not the SoC temperature, but the phone was not warm.
 
 | Attempt (each followed by Bluetooth off + Wi-Fi on, re-checked after boot settled) | Result |
 |---|---|
 | Bootloader reboot (section 4) | Chip absent, Wi-Fi disabled |
 | Bootloader reboot, second time | Chip absent, Wi-Fi disabled |
 | Full power-off, left off at least 30 s, powered on by hand | Chip absent, Wi-Fi disabled |
+| Bootloader reboot, third time (about 10 minutes later), Wi-Fi on retried once more about a minute after boot | Chip absent, Wi-Fi disabled |
 
-I stopped there on purpose so I wouldn't run into the lockout. The bootloader path is not a reliable fix, a cold
+I stopped after those four attempts on purpose so I wouldn't run into the lockout. The bootloader path is not a reliable fix, a cold
 power cycle didn't help either, and a warm phone isn't needed for the fault to show up.
 
 ## 5b. Internet without Wi-Fi: USB reverse tethering
@@ -135,6 +142,10 @@ Notes:
 - The phone must stay plugged in and the relay must keep running on the computer.
 - To undo it: stop the relay, `adb reverse --remove-all`, `adb uninstall com.genymobile.gnirehtet`.
 
+- Any reboot drops the tunnel. Right after boot, `gnirehtet run` can fail with `Activity class
+  {com.genymobile.gnirehtet/...GnirehtetActivity} does not exist` because Android hasn't finished loading apps yet.
+  The relay keeps running, so wait about 20 seconds and run `gnirehtet start`.
+
 It's a stopgap for backing up and getting through setup until the repair, not a fix.
 
 ## 6. What I think is going on (unproven)
@@ -143,7 +154,7 @@ It's a stopgap for backing up and getting through setup until the repair, not a 
    below (heat-sensitive, temporarily fixed by cooling). Consistent with "chip absent on PCIe until it happens to
    come up".
 2. **The bootloader path resets the chip more completely** than a warm reboot (rails, reset line). Consistent with
-   three out of three on day 1, but **contradicted on day 12** (0 of 2, and a full power-off also failed). At most
+   three out of three on day 1, but **contradicted on day 12** (0 of 3, and a full power-off also failed). At most
    it helped while the fault was milder.
 3. **Bluetooth load contributing to Wi-Fi firmware crashes** (shared chip). One observation; weak.
 
