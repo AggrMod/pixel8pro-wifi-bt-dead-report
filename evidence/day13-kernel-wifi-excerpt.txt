@@ -1,0 +1,43 @@
+<4>[    4.956549][ T1047] [21:28:52.411739][dhd][wlan]_dhd_module_init in
+<4>[    4.958073][ T1047] [21:28:52.413265][dhd][wlan]dhd_wifi_init_gpio: gpio_request WL_REG_ON done - WLAN_EN: GPIO 107
+<4>[    4.958087][ T1047] [21:28:52.413280][dhd][wlan]dhd_wifi_init_gpio: WL_REG_ON is pulled up
+<4>[    5.163225][ T1047] [21:28:52.618416][dhd][wlan]dhd_wifi_init_gpio: gpio_request WLAN_HOST_WAKE done - WLAN_HOST_WAKE: GPIO 179
+<4>[    5.163441][ T1047] [21:28:52.618633][dhd][wlan]dhd_wlan_init_hardware_info: hw_sku is G1MNW, val_sku is MMW
+<4>[    5.163449][ T1047] [21:28:52.618642][dhd][wlan]dhd_wlan_init: FINISH.......
+<4>[    5.163467][ T1047] [21:28:52.618660][dhd][wlan]wifi_platform_bus_enumerate device present 1
+<3>[    5.520549][ T1047] logbuffer_pcie1: [   35] Link is not up, try count: 1, linksts: DETECT QUIET(0x0)
+<6>[    5.520581][ T1047] logbuffer_pcie1: [   36] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    5.709318][ T1047] logbuffer_pcie1: [   37] Link is not up, try count: 2, linksts: DETECT QUIET(0x0)
+<6>[    5.709332][ T1047] logbuffer_pcie1: [   38] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    5.880544][ T1047] logbuffer_pcie1: [   41] Link is not up, try count: 3, linksts: DETECT QUIET(0x0)
+<6>[    5.880569][ T1047] logbuffer_pcie1: [   42] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.036547][ T1047] logbuffer_pcie1: [   44] Link is not up, try count: 4, linksts: DETECT QUIET(0x0)
+<6>[    6.036575][ T1047] logbuffer_pcie1: [   45] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.192866][ T1047] logbuffer_pcie1: [   46] Link is not up, try count: 5, linksts: DETECT QUIET(0x0)
+<6>[    6.192888][ T1047] logbuffer_pcie1: [   47] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.374461][ T1047] logbuffer_pcie1: [   48] Link is not up, try count: 6, linksts: DETECT QUIET(0x0)
+<6>[    6.374479][ T1047] logbuffer_pcie1: [   49] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.517835][ T1047] logbuffer_pcie1: [   50] Link is not up, try count: 7, linksts: DETECT QUIET(0x0)
+<6>[    6.517865][ T1047] logbuffer_pcie1: [   51] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.655930][ T1047] logbuffer_pcie1: [   52] Link is not up, try count: 8, linksts: DETECT QUIET(0x0)
+<6>[    6.655961][ T1047] logbuffer_pcie1: [   53] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.799549][ T1047] logbuffer_pcie1: [   54] Link is not up, try count: 9, linksts: DETECT QUIET(0x0)
+<6>[    6.799580][ T1047] logbuffer_pcie1: [   55] exynos_pcie_rc_establish_link: Set PERST to LOW, gpio val = 0
+<3>[    6.938366][ T1047] logbuffer_pcie1: [   56] Link is not up, try count: 10, linksts: DETECT QUIET(0x0)
+<6>[    6.938448][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938456][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938464][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938473][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938481][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938489][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938498][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938506][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<6>[    6.938514][ T1047] exynos-pcie-rc 13120000.pcie: LTSSM: 0x01, L1sub: 0x0, D state: 0x0
+<3>[    6.938522][ T1047] logbuffer_pcie1: [   57] Link recovery retry fail count: 10
+<3>[    6.940927][ T1047] logbuffer_pcie1: [   58] pcie link up fail
+<4>[    6.942202][ T1047] [21:28:54.397392][dhd][wlan]No Broadcom PCI device enumerated!
+<4>[    6.942744][ T1047] [21:28:54.397934][dhd][wlan]dhd_wifi_platform_load_pcie: dhd_bus_register failed err=-1
+<4>[    6.943044][ T1047] [21:28:54.398235][dhd][wlan]unregister wifi platform drivers
+<4>[    6.945330][ T1047] [21:28:54.400522][dhd][wlan]_dhd_module_init: Failed to load the driver, try cnt 0
+<4>[    6.945340][ T1047] [21:28:54.400532][dhd][wlan]_dhd_module_init: Failed to load driver max retry reached**
+<4>[    6.945347][ T1047] [21:28:54.400540][dhd][wlan]_dhd_module_init out

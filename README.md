@@ -1,6 +1,6 @@
 # Pixel 8 Pro: Wi-Fi and Bluetooth both dead — diagnosis log and a workaround that stopped working
 
-**Status: one phone, two sessions eleven days apart. This is a field report, not a verified fix.**
+**Status: one phone, three sessions over 13 days. This is a field report, not a verified fix.**
 
 **Update (day 12): the workaround no longer works.** The radios were dead again, and neither the bootloader
 reboot (twice) nor a full power-off brought them back, at a cool temperature. I now treat this unit as a hardware
@@ -34,7 +34,8 @@ Everything below was read over `adb` with no root.
 
 **Wi-Fi**
 - Settings toggle does nothing. No `wlan0` in `/sys/class/net`.
-- `lsmod` has no `bcmdhd4398`, although the `.ko` file exists.
+- `lsmod` has no `bcmdhd4398`, although the `.ko` file exists. (Day 13's kernel log shows why: the module does
+  load at boot, can't find the chip, and unloads itself. See section 5c.)
 - Logcat, repeating on every attempt:
   ```
   WifiHAL : Timed out waiting on Driver ready ...
@@ -148,6 +149,40 @@ Notes:
 
 It's a stopgap for backing up and getting through setup until the repair, not a fix.
 
+## 5c. Day 13: the kernel log (software or hardware?)
+
+A plain `adb bugreport` (no root needed) includes the kernel log from boot, in the `KERNEL LOG (dmesg)` section.
+I took one the next day, about 2 minutes after a cool start (battery 21.8 °C), with the radios still dead. The
+relevant lines are in [`evidence/day13-kernel-wifi-excerpt.txt`](evidence/day13-kernel-wifi-excerpt.txt), filtered
+to the Wi-Fi driver and the Wi-Fi PCIe controller. The sequence, about 2 seconds in total:
+
+```
+[dhd][wlan]_dhd_module_init in                                   # driver module loads at boot
+[dhd][wlan]dhd_wifi_init_gpio: WL_REG_ON is pulled up            # driver switches the chip's power-enable line on
+[dhd][wlan]wifi_platform_bus_enumerate device present 1          # asks the PCIe controller to bring the link up
+logbuffer_pcie1: Link is not up, try count: 1, linksts: DETECT QUIET(0x0)
+  ... the same for try count 2 to 10 ...
+logbuffer_pcie1: Link recovery retry fail count: 10
+logbuffer_pcie1: pcie link up fail
+[dhd][wlan]No Broadcom PCI device enumerated!
+[dhd][wlan]dhd_wifi_platform_load_pcie: dhd_bus_register failed err=-1
+[dhd][wlan]_dhd_module_init: Failed to load driver max retry reached**
+```
+
+What this shows:
+
+- **The software side does its part.** The driver isn't missing, blocked or crashing. It loads, drives the chip's
+  enable line high, and asks for the link, in the normal order.
+- **The chip never answers, even electrically.** The PCIe link state never leaves *Detect* (LTSSM `0x00`/`0x01`,
+  Detect.Quiet/Detect.Active). In that state the controller is only checking whether anything is attached to the
+  lanes, and it never finds a receiver. That's earlier than any protocol or firmware exchange, so a firmware or
+  configuration bug on the chip can't cause it.
+- The driver then gives up and unloads, which is why `lsmod` shows nothing and Android times out waiting for it.
+
+This is the strongest evidence so far that it's **hardware**: the chip, its power supply, or its board connection.
+It leaves one gap: the log says the enable line was set, but software can't show whether the chip actually got
+power. That needs a meter on the board.
+
 ## 6. What I think is going on (unproven)
 
 1. **Intermittent hardware fault** in the combined chip or its board connection. This matches the public reports
@@ -158,7 +193,8 @@ It's a stopgap for backing up and getting through setup until the repair, not a 
    it helped while the fault was milder.
 3. **Bluetooth load contributing to Wi-Fi firmware crashes** (shared chip). One observation; weak.
 
-Day 12 makes explanation 1 the most likely one, and suggests the fault is getting worse over time.
+Day 12 makes explanation 1 the most likely one, and suggests the fault is getting worse over time. Day 13's kernel
+log (section 5c) backs it up directly: the driver powers the chip and the link never gets past *Detect*.
 
 Experiments that would separate these, which I did not run: a controlled cold test; Bluetooth on versus off with
 the same boot path; repeat counts on more phones. (Full power-off versus the bootloader path: tried on day 12,
@@ -195,7 +231,8 @@ board-level repair shop. Reinstalling Android will not fix a chip that is not an
 
 ## 10. Limits
 
-- One phone. Two sessions. No root, so no kernel log from boot; the driver's own load messages were never visible.
+- One phone. Three sessions. No root. I only saw the boot kernel log on day 13, through `adb bugreport`, and only
+  for a dead boot. I don't have one from a working boot to compare against.
 - I never ran a controlled cold test. All I can say about temperature is that the fault showed up with the phone
   at room temperature (day 12).
 - The commands in section 4 are exactly what I ran, but I have not packaged them as a script.
